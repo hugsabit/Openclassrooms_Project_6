@@ -8,6 +8,13 @@
 
 const http = require('http');
 const app = require('./app');
+const dotenv = require("dotenv");
+
+///-----------------------------------------------------------------///
+/// Déclaration de dotenv pour récupérer un variable dans le .env   ///
+///-----------------------------------------------------------------///
+
+dotenv.config();
 
 ///-------------------------------------///
 /// Fonction de normalisation du port   ///

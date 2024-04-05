@@ -51,22 +51,32 @@ exports.postSauce = (req, res, next) => {
 ///-------------------------------------///
 
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ? {
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : { ...req.body };
-    delete sauceObject._userId;
-    Sauce.findOne({_id: req.params.id})
+    Sauce.findOne({ _id: req.params.id})
         .then(sauce => {
-            if (sauce.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Problème authentification' });
+            if (!sauce) {
+                res.status(404).json({ message: 'Sauce non trouvé' });
             } else {
-                Sauce.updateOne({ _id: req.params.id }, {...sauceObject, _id: req.params.id})
-                    .then(() => res.status(201).json({ message: 'objet modifié !' }))
-                .catch(error => res.status(401).json({ error }));
-            };
+                if (sauce.userId != req.auth.userId) {
+                    res.status(401).json({ message: 'Problème authentification' });
+                } else {
+                    let sauceObject = { ...req.body };
+                    if (req.file) {
+                        const oldFileName = sauce.imageUrl.split('/images/')[1];
+                        fs.unlink(`images/${oldFileName}`, (err) => {
+                            if (err) {
+                                console.error("Erreur de suppression de l'image :", err);
+                            }
+                        });
+                        sauceObject.imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+                    }
+                    Sauce.updateOne({ _id: req.params.id }, {...sauceObject, _id: req.params.id})
+                        .then(() => res.status(201).json({ message: 'Sauce modifiée !' }))
+                    .catch(error => res.status(401).json({ error }));
+                };
+            }
         })
-    .catch(error => res.status(400).json({ error }));
+    .catch( error => {res.status(500).json({ error });
+    });
 };
 
 ///-------------------------------------///
