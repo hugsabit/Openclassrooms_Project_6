@@ -9,6 +9,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
+const passwordValidator = require('password-validator');
 
 const User = require('../models/User');
 
@@ -26,7 +27,11 @@ exports.signup = (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(existUser => {
             if (existUser === null) {
-                bcrypt.hash(req.body.password, 10)
+                let schema = new passwordValidator();
+                schema.is().min(8);
+                schema.is().max(100);
+                if (schema.validate(req.body.password)) {
+                    bcrypt.hash(req.body.password, 10)
                     .then(hash => {
                         const user = new User({
                             email: req.body.email,
@@ -39,6 +44,9 @@ exports.signup = (req, res, next) => {
                         .catch(error => res.status(400).json({ error }));
                     })
                 .catch(error => res.status(500).json({ error }));
+                } else {
+                    res.status(401).json({ message: 'Votre mot de passe doit contenir entre 8 et 100 caractères' })
+                }
             } else {
                 res.status(401).json({ message: 'Identifiant/Mot de passe ne peuvent être validé !' });
             };

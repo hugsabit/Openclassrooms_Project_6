@@ -10,6 +10,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const dotenv = require("dotenv");
+const helmet = require('helmet')
 
 const user = require('./routes/user');
 const sauces = require('./routes/sauces');
@@ -33,6 +34,12 @@ const app = express();
 mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))
 .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+///------------------------------------------///
+/// Déclaration de l'utilisation de helmet   ///
+///------------------------------------------///
+
+app.use(helmet());
 
 ///-------------------------------------------------///
 /// Déclaration des entêtes des requêtes reponses   ///
